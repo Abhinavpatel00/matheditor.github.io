@@ -1,0 +1,220 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(to right, #1e3799, #3c8dbc);
+    color: #fff;
+    transition: background 0.3s ease;
+  }
+
+  #navbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  #navbar a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin: 0 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+
+  #navbar a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  #hamberger-icon {
+    display: none;
+    cursor: pointer;
+  }
+
+  #container {
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    align-items: stretch;
+    box-sizing: border-box;
+    margin: 20px;
+  }
+
+  #input-container, #output-container {
+    flex: 1;
+    box-sizing: border-box;
+    padding: 20px;
+    border: 2px solid #3498db;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+
+  #input-container:hover, #output-container:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  #input {
+    width: 100%;
+    height: calc(100% - 10px);
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    background-color: #ecf0f1;
+  }
+
+  #output {
+    height: 100%;
+    margin-top: 10px;
+    overflow-y: auto;
+    color: #333;
+  }
+
+  @media (max-width: 768px) {
+    #navbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #navbar a {
+      margin: 5px 0;
+    }
+
+    #hamberger-icon {
+      display: block;
+    }
+
+    #container {
+      flex-direction: column;
+    }
+
+    #input-container, #output-container {
+      margin-top: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #navbar {
+      position: relative;
+    }
+
+    #navbar a {
+      display: none;
+    }
+
+    #navbar.show-links a {
+      display: block;
+    }
+
+    #hamberger-icon::before {
+      content: '\2630';
+      font-size: 24px;
+    }
+  }
+
+  /* Dark Theme */
+  body.dark-theme {
+    background: #2c3e50;
+    color: #ecf0f1;
+  }
+
+  body.dark-theme #navbar {
+    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+  }
+
+  body.dark-theme #navbar a {
+    color: #ecf0f1;
+  }
+
+  body.dark-theme #navbar a:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
+  body.dark-theme #container {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  body.dark-theme #input-container,
+  body.dark-theme #output-container {
+    border: 2px solid #2c3e50;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+  }
+
+  body.dark-theme #input {
+    border: 1px solid #576574;
+    background-color: #34495e;
+    color: #ecf0f1;
+  }
+
+  body.dark-theme #output {
+    color: #ecf0f1;
+  }
+
+  
+  #hamberger-options {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  #hamberger-options a {
+    color: #333;
+    text-decoration: none;
+    padding: 10px;
+    display: block;
+  }
+
+  #hamberger-options a:hover {
+    background-color: #3498db;
+    color: #fff;
+  }
+
+  @media (max-width: 480px) {
+    #hamberger-icon::before {
+      content: '\2630';
+      font-size: 24px;
+    }
+
+    #hamberger-options {
+      top: 70px;
+    }
+  }
+
+
+  .autocomplete-items {
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    position: fixed;  /* Fixed position to overlay on the content */
+    background-color: rgb(0, 0, 0);
+    z-index: 1;
+  }
+
+  /* Style for each autocomplete item */
+  .autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ff2a2a;
+  }
+
+  /* Highlight the selected item */
+  .autocomplete-active {
+    background-color: #4CAF50;
+    color: rgb(224, 11, 11);
+  }
+  

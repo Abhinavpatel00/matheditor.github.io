@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathJax Editor</title>
+  <script src="edit.js"></script>
+  <script src="autocomplete.js"></script>
+ <link rel="stylesheet" href="edit.css">
+  <script id="MathJax-script" async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+</head>
+<body>
+
+ 
+  <div id="navbar">
+    <div id="hamberger-icon" onclick="toggleOptions()"></div>
+    <div id="nav-links">
+      <!-- <label for="file-upload" style="cursor: pointer;">Upload File</label> -->
+      <input type="file" id="file-upload" style="display: none;" onchange="loadFile()">
+      <a href="#" onclick="newFile()">New File</a>
+      <a href="#" onclick="exportPDF()">Export PDF</a>
+      <a href="#" onclick="exportTex()">Export Tex</a>
+      <a href="#" onclick="exportDocx()">Export Docx</a>
+      <a href="#" onclick="toggleTheme()">Toggle Theme</a>
+     
+    </div>
+    <div id="hamberger-options">
+      <a href="#" onclick="uploadFile()">Upload File</a>
+      <a href="#" onclick="exportPDF()">Export as PDF</a>
+      <a href="#" onclick="exportTex()">Export as Tex</a>
+      <a href="#" onclick="exportDocx()">Export as Docx</a>
+    </div>
+  </div>
+
+  <div id="container" autocomplete="off">
+    <div id="input-container autocomplete" style="width:500px;">
+      <textarea id="input" type="text" placeholder="Enter your TeX code here..." oninput="convert()"></textarea>
+    </div>
+
+    <div id="output-container">
+      <div id="output"></div>
+    </div>
+  </div>
+<script>
+  /* Get Caret XY Coordinate */
+  (function () {
+    var properties = ['direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY', 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderStyle', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize', 'fontSizeAdjust', 'lineHeight', 'fontFamily', 'textAlign', 'textTransform', 'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing', 'tabSize', 'MozTabSize'];
+
+    var isBrowser = (typeof window !== 'undefined');
+    var isFirefox = (isBrowser && window.mozInnerScreenX != null);
+
+    function getCaretCoordinates(element, position, options) {
+      if (!isBrowser) {
+        throw new Error('textarea-caret-position#getCaretCoordinates should only be called in a browser');
+      }
+
+      var debug = options && options.debug || false;
+      if (debug) {
+        var el = document.querySelector('#input-textarea-caret-position-mirror-div');
+        if (el) {
+          el.parentNode.removeChild(el);
+        }
+      }
+
+      var div = document.createElement('div');
+      div.id = 'input-textarea-caret-position-mirror-div';
+      document.body.appendChild(div);
+
+      var style = div.style;
+      var computed = window.getComputedStyle ? getComputedStyle(element) : element.currentStyle;
+
+      style.whiteSpace = 'pre-wrap';
+      if (element.nodeName !== 'INPUT') {
+        style.wordWrap = 'break-word';
+      }
+
+      style.position = 'absolute';
+      if (!debug) {
+        style.visibility = 'hidden';
+      }
+
+      properties.forEach(function (prop) {
+        style[prop] = computed[prop];
+      });
+
+      if (isFirefox) {
+        if (element.scrollHeight > parseInt(computed.height))
+          style.overflowY = 'scroll';
+      } else {
+        style.overflow = 'hidden';
+      }
+
+      div.textContent = element.value.substring(0, position);
+
+      if (element.nodeName === 'INPUT') {
+        div.textContent = div.textContent.replace(/\s/g, '\u00a0');
+      }
+
+      var span = document.createElement('span');
+      span.textContent = element.value.substring(position) || '.';
+      div.appendChild(span);
+
+      var coordinates = {
+        top: span.offsetTop + parseInt(computed['borderTopWidth']),
+        left: span.offsetLeft + parseInt(computed['borderLeftWidth'])
+      };
+
+      if (debug) {
+        span.style.backgroundColor = '#aaa';
+      } else {
+        document.body.removeChild(div);
+      }
+
+      return coordinates;
+    }
+
+    if (typeof module != 'undefined' && typeof module.exports != 'undefined') {
+      module.exports = getCaretCoordinates;
+    } else if (isBrowser) {
+      window.getCaretCoordinates = getCaretCoordinates;
+    }
+
+  })();
+
+  /* Get Element XY Coordinate */
+  function getElementCoords(elem) {
+    var box = elem.getBoundingClientRect();
+
+    var body = document.body;
+    var docEl = document.documentElement;
+
+    var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+    var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+    var clientTop = docEl.clientTop || body.clientTop || 0;
+    var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+    var top = box.top + scrollTop - clientTop;
+    var left = box.left + scrollLeft - clientLeft;
+
+    return { top: Math.round(top), left: Math.round(left) };
+  }
+  function autocomplete(inp, arr) {
+  var currentFocus;
+
+  inp.addEventListener("input", function (e) {
+    var a, b, i, val = this.value;
+    closeAllLists();
+    currentFocus = -1;
+
+    // Check if the input contains a backslash
+    if (val.includes("\\")) {
+      // Create the autocomplete list
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+
+      var coordinates = getCaretCoordinates(inp, inp.selectionStart);
+      var elementCoordinates = getElementCoords(inp);
+      var topPosition = coordinates.top + elementCoordinates.top + 20;
+      var leftPosition = coordinates.left + elementCoordinates.left;
+      a.style.position = "fixed";
+      a.style.left = leftPosition + "px";
+      a.style.top = topPosition + "px";
+
+      document.body.appendChild(a);
+
+      // Populate the autocomplete list based on the array
+      for (i = 0; i < arr.length; i++) {
+        if (arr[i].toLowerCase().startsWith(val.toLowerCase())) {
+          b = document.createElement("DIV");
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          b.addEventListener("click", function (e) {
+            // Set the selected suggestion as the input value
+            inp.value = this.getElementsByTagName("input")[0].value;
+            closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+    }
+  });
+
+  inp.addEventListener("keydown", function (e) {
+    var x = document.getElementById(this.id + "autocomplete-list");
+    if (x) x = x.getElementsByTagName("div");
+    if (e.keyCode == 40) {
+      currentFocus++;
+      addActive(x);
+    } else if (e.keyCode == 38) {
+      currentFocus--;
+      addActive(x);
+    } else if (e.keyCode == 13) {
+      e.preventDefault();
+      if (currentFocus > -1) {
+        if (x) x[currentFocus].click();
+      }
+    }
+  });
+
+  function addActive(x) {
+    if (!x) return false;
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = x.length - 1;
+    x[currentFocus].classList.add("autocomplete-active");
+  }
+
+  function removeActive(x) {
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
+    }
+  }
+
+  function closeAllLists(elmnt) {
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    closeAllLists(e.target);
+  });
+}
+
+function initAutocomplete() {
+  fetch('tex.json')
+    .then(response => response.json())
+    .then(data => {
+      autocomplete(document.getElementById("input"), data);
+    })
+    .catch(error => console.error('Error loading JSON file:', error));
+}
+
+initAutocomplete();
+
+</script>
+
+</body>
+</html>
