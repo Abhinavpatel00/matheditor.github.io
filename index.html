@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MathJax Editor</title>
   <script src="edit.js"></script>
-  <script src="autocomplete.js"></script>
+  
  <link rel="stylesheet" href="edit.css">
   <script id="MathJax-script" async src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -147,10 +147,10 @@
 
   inp.addEventListener("input", function (e) {
     var a, b, i, val = this.value;
+    
     closeAllLists();
     currentFocus = -1;
 
-    // Check if the input contains a backslash
     if (val.includes("\\")) {
       // Create the autocomplete list
       a = document.createElement("DIV");
@@ -166,23 +166,25 @@
       a.style.top = topPosition + "px";
 
       document.body.appendChild(a);
+      var displayVal = val.replace(/\\/g, '');
 
-      // Populate the autocomplete list based on the array
-      for (i = 0; i < arr.length; i++) {
-        if (arr[i].toLowerCase().startsWith(val.toLowerCase())) {
-          b = document.createElement("DIV");
-          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-          b.innerHTML += arr[i].substr(val.length);
-          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-          b.addEventListener("click", function (e) {
-            // Set the selected suggestion as the input value
-            inp.value = this.getElementsByTagName("input")[0].value;
-            closeAllLists();
-          });
-          a.appendChild(b);
+    // Populate the autocomplete list based on the array
+    for (i = 0; i < arr.length; i++) {
+      b = document.createElement("DIV");
+      b.innerHTML = "<strong>" + arr[i].substr(0, displayVal.length) + "</strong>";
+      b.innerHTML += arr[i].substr(displayVal.length);
+      b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+      b.addEventListener("click", function (e) {
+        // Set the selected suggestion as the input value
+        inp.value += this.getElementsByTagName("input")[0].value;
+        closeAllLists();
+      });
+      a.appendChild(b);
         }
+        
       }
-    }
+      
+    
   });
 
   inp.addEventListener("keydown", function (e) {
@@ -240,6 +242,7 @@ function initAutocomplete() {
 }
 
 initAutocomplete();
+
 
 </script>
 
